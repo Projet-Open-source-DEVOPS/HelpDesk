@@ -10,6 +10,7 @@ cd standalone
 
 ET VOUS FAITES
 ```bash
+./setup.sh
 docker-compose up -d
 ```
 
