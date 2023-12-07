@@ -26,6 +26,6 @@ exec gunicorn standalone.config.wsgi:application \
 	--timeout ${GUNICORN_TIMEOUT:-"60"} \
 	--preload \
 	--log-level=debug \
-	--log-file=- \
-	--access-logfile=- \
+	--log-file=/opt/django-helpdesk/gunicorn-log.log \
+	--access-logfile=/opt/django-helpdesk/gunicorn-log-access.log \
 	"$@"
