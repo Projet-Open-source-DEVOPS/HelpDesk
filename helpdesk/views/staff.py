@@ -37,7 +37,8 @@ from helpdesk.decorators import (
     helpdesk_staff_member_required,
     helpdesk_superuser_required,
     is_helpdesk_staff,
-    superuser_required
+    superuser_required,
+    user_connected_required
 )
 from helpdesk.forms import (
     ChecklistForm,
@@ -956,13 +957,10 @@ def check_redirect_on_user_query(request, huser):
                 pass
     return None
 
-
-@helpdesk_staff_member_required
+@user_connected_required
 def ticket_list(request):
     context = {}
-
     huser = HelpdeskUser(request.user)
-
     # Query_params will hold a dictionary of parameters relating to
     # a query, to be saved if needed:
     query_params = {

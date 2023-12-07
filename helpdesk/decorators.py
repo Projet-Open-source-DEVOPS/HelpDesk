@@ -36,7 +36,7 @@ else:
 
 helpdesk_staff_member_required = user_passes_test(is_helpdesk_staff)
 helpdesk_superuser_required = user_passes_test(check_staff_status(False)(True))
-
+helpdesk_user_connected = True
 
 def protect_view(view_func):
     """
@@ -81,6 +81,19 @@ def superuser_required(view_func):
             return redirect('helpdesk:login')
         if not request.user.is_superuser:
             raise PermissionDenied()
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped_view
+
+def user_connected_required(view_func):
+    """
+    Decorator for views checking if the user is authenticated and active,
+    redirecting to the log-in page if necessary or returning 403
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated or not request.user.is_active:
+            return redirect(auth_settings.LOGIN_URL)
         return view_func(request, *args, **kwargs)
 
     return _wrapped_view
