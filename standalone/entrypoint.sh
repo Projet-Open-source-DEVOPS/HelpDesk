@@ -15,9 +15,12 @@ DJANGO_SUPERUSER_PASSWORD=Test1234 python3 /opt/django-helpdesk/standalone/manag
 
 #Apply group and permissions
 python3 /opt/django-helpdesk/standalone/manage.py create_permissions_group
+echo Creating the group permissions Client and Provider success.
 
+#Create a client and a provider for test
+python3 /opt/django-helpdesk/standalone/manage.py create_client_and_provider
 
-
+echo Creating 2 user : One with Provider group permissions and other with the Client group permissions
 # Starting cron to check emails
 printenv > /etc/env
 env | awk -F= '{printf "export %s=\"%s\"\n", $1, $2}' > /etc/env
