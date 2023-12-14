@@ -7,6 +7,7 @@ views/staff.py - The bulk of the application - provides most business logic and
                  renders all staff-facing views.
 """
 
+from helpdesk.serializers import DatatablesTicketSerializer
 from ..lib import format_time_spent
 from ..templated_email import send_templated_mail
 from collections import defaultdict
@@ -1117,7 +1118,7 @@ def load_saved_query(request, query_params=None):
     return saved_query, query_params
 
 
-@helpdesk_staff_member_required
+@user_connected_required
 @api_view(['GET'])
 def datatables_ticket_list(request, query):
     """
@@ -1125,9 +1126,21 @@ def datatables_ticket_list(request, query):
     on the table. query_tickets_by_args is at lib.py, DatatablesTicketSerializer is in
     serializers.py. The serializers and this view use django-rest_framework methods
     """
-    query = Query(HelpdeskUser(request.user), base64query=query)
-    result = query.get_datatables_context(**request.query_params)
-    return JsonResponse(result, status=status.HTTP_200_OK)
+    can_view_own_tickets = request.user.has_perm('helpdesk.user_can_view_own_tickets')
+    can_view_all_tickets = request.user.has_perm('helpdesk.user_can_view_all_tickets')
+    
+    ticket_filter = {}
+    if can_view_own_tickets:
+        ticket_filter['owner'] = request.user
+
+    if can_view_all_tickets:
+        tickets = Ticket.objects.all()
+    else:
+        tickets = Ticket.objects.filter(**ticket_filter)
+    
+    serializer = DatatablesTicketSerializer(tickets, many=True)
+    
+    return JsonResponse({'data' :serializer.data }, status=status.HTTP_200_OK, safe=False)
 
 
 @helpdesk_staff_member_required
