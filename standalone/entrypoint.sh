@@ -10,8 +10,12 @@ if python manage.py showmigrations | grep '\[ \]\|^[a-z]' | grep '[  ]' -B 1; th
 fi
 
 #Apply some datas for exemple
-DJANGO_SUPERUSER_PASSWORD=Test1234 python3 /opt/django-helpdesk/standalone/manage.py createsuperuser --username admin --email helpdesk@example.com --noinput
 python3 /opt/django-helpdesk/standalone/manage.py loaddata /opt/django-helpdesk/demo/demodesk/fixtures/demo.json
+DJANGO_SUPERUSER_PASSWORD=Test1234 python3 /opt/django-helpdesk/standalone/manage.py createsuperuser --username admin --email helpdesk@example.com --noinput
+
+#Apply group and permissions
+python3 /opt/django-helpdesk/standalone/manage.py create_permissions_group
+
 
 
 # Starting cron to check emails
