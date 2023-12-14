@@ -2,6 +2,11 @@
 import os
 import sys
 
+def setup_permissions():
+    from django.contrib.auth.models import Group, Permission
+    user_permissions = Permission.objects.filter(codename='user_can_view_own_tickets')
+    client_group, created = Group.objects.get_or_create(name='client')
+    client_group.permissions.set(user_permissions)
 
 def main():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "standalone.config.local_settings")
@@ -20,8 +25,12 @@ def main():
                 "forget to activate a virtual environment?"
             )
         raise
+
+    
+
     execute_from_command_line(sys.argv)
 
 
 if __name__ == "__main__":
     main()
+    setup_permissions()
