@@ -1128,11 +1128,15 @@ def datatables_ticket_list(request, query):
     """
     can_view_own_tickets = request.user.has_perm('helpdesk.user_can_view_own_tickets')
     can_view_all_tickets = request.user.has_perm('helpdesk.user_can_view_all_tickets')
-    
+    can_view_assigned_ticket = request.user.has_perm('helpdesk.user_can_view_tickets_where_assigned')
+
     ticket_filter = {}
     if can_view_own_tickets:
         ticket_filter['owner'] = request.user
 
+    if can_view_assigned_ticket:
+        ticket_filter['assigned_to'] = request.user
+    
     if can_view_all_tickets:
         tickets = Ticket.objects.all()
     else:
