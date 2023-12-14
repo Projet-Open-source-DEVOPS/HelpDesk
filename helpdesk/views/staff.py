@@ -7,6 +7,7 @@ views/staff.py - The bulk of the application - provides most business logic and
                  renders all staff-facing views.
 """
 
+from helpdesk.serializers import DatatablesTicketSerializer
 from ..lib import format_time_spent
 from ..templated_email import send_templated_mail
 from collections import defaultdict
@@ -37,7 +38,8 @@ from helpdesk.decorators import (
     helpdesk_staff_member_required,
     helpdesk_superuser_required,
     is_helpdesk_staff,
-    superuser_required
+    superuser_required,
+    user_connected_required
 )
 from helpdesk.forms import (
     ChecklistForm,
@@ -84,8 +86,8 @@ import re
 from rest_framework import status
 from rest_framework.decorators import api_view
 import typing
-
-
+import logging
+logger = logging.getLogger(__name__)
 if helpdesk_settings.HELPDESK_KB_ENABLED:
     from helpdesk.models import KBItem
 
@@ -956,13 +958,13 @@ def check_redirect_on_user_query(request, huser):
                 pass
     return None
 
-
-@helpdesk_staff_member_required
+@user_connected_required
 def ticket_list(request):
     context = {}
-
     huser = HelpdeskUser(request.user)
-
+    logger.warning(
+               huser
+            )
     # Query_params will hold a dictionary of parameters relating to
     # a query, to be saved if needed:
     query_params = {
@@ -1084,7 +1086,7 @@ def ticket_list(request):
     ))
 
 
-ticket_list = staff_member_required(ticket_list)
+#ticket_list = staff_member_required(ticket_list)
 
 
 class QueryLoadError(Exception):
@@ -1116,7 +1118,7 @@ def load_saved_query(request, query_params=None):
     return saved_query, query_params
 
 
-@helpdesk_staff_member_required
+@user_connected_required
 @api_view(['GET'])
 def datatables_ticket_list(request, query):
     """
@@ -1124,9 +1126,25 @@ def datatables_ticket_list(request, query):
     on the table. query_tickets_by_args is at lib.py, DatatablesTicketSerializer is in
     serializers.py. The serializers and this view use django-rest_framework methods
     """
-    query = Query(HelpdeskUser(request.user), base64query=query)
-    result = query.get_datatables_context(**request.query_params)
-    return JsonResponse(result, status=status.HTTP_200_OK)
+    can_view_own_tickets = request.user.has_perm('helpdesk.user_can_view_own_tickets')
+    can_view_all_tickets = request.user.has_perm('helpdesk.user_can_view_all_tickets')
+    can_view_assigned_ticket = request.user.has_perm('helpdesk.user_can_view_tickets_where_assigned')
+
+    ticket_filter = {}
+    if can_view_own_tickets:
+        ticket_filter['owner'] = request.user
+
+    if can_view_assigned_ticket:
+        ticket_filter['assigned_to'] = request.user
+    
+    if can_view_all_tickets:
+        tickets = Ticket.objects.all()
+    else:
+        tickets = Ticket.objects.filter(**ticket_filter)
+    
+    serializer = DatatablesTicketSerializer(tickets, many=True)
+    
+    return JsonResponse({'data' :serializer.data }, status=status.HTTP_200_OK, safe=False)
 
 
 @helpdesk_staff_member_required

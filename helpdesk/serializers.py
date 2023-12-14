@@ -15,6 +15,7 @@ class DatatablesTicketSerializer(serializers.ModelSerializer):
     """
     ticket = serializers.SerializerMethodField()
     assigned_to = serializers.SerializerMethodField()
+    owner = serializers.SerializerMethodField()
     submitter = serializers.SerializerMethodField()
     created = serializers.SerializerMethodField()
     due_date = serializers.SerializerMethodField()
@@ -29,7 +30,7 @@ class DatatablesTicketSerializer(serializers.ModelSerializer):
         # fields = '__all__'
         fields = ('ticket', 'id', 'priority', 'title', 'queue', 'status',
                   'created', 'due_date', 'assigned_to', 'submitter', 'row_class',
-                  'time_spent', 'kbitem')
+                  'time_spent', 'kbitem', 'owner')
 
     def get_queue(self, obj):
         return {"title": obj.queue.title, "id": obj.queue.id}
@@ -57,6 +58,12 @@ class DatatablesTicketSerializer(serializers.ModelSerializer):
         else:
             return "None"
 
+    def get_owner(self, obj):
+        if obj.owner:
+            return obj.owner.username
+        else:
+            return "None"
+    
     def get_submitter(self, obj):
         return obj.submitter_email
 

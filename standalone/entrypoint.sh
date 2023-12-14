@@ -13,6 +13,7 @@ fi
 DJANGO_SUPERUSER_PASSWORD=Test1234 python3 /opt/django-helpdesk/standalone/manage.py createsuperuser --username admin --email helpdesk@example.com --noinput
 python3 /opt/django-helpdesk/standalone/manage.py loaddata /opt/django-helpdesk/demo/demodesk/fixtures/demo.json
 
+
 # Starting cron to check emails
 printenv > /etc/env
 env | awk -F= '{printf "export %s=\"%s\"\n", $1, $2}' > /etc/env
@@ -25,7 +26,8 @@ exec gunicorn standalone.config.wsgi:application \
 	--workers ${GUNICORN_NUM_WORKERS:-"6"} \
 	--timeout ${GUNICORN_TIMEOUT:-"60"} \
 	--preload \
+	--reload \
 	--log-level=debug \
-	--log-file=- \
-	--access-logfile=- \
+	--log-file=/opt/django-helpdesk/gunicorn-log.log \
+	--access-logfile=/opt/django-helpdesk/gunicorn-log-access.log \
 	"$@"

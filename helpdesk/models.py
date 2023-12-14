@@ -489,6 +489,14 @@ class Ticket(models.Model):
         max_length=200,
     )
 
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='owner',
+        blank=True,
+        null=True,
+        verbose_name=_('Owner'),
+    )
     queue = models.ForeignKey(
         Queue,
         on_delete=models.CASCADE,
@@ -500,7 +508,7 @@ class Ticket(models.Model):
         blank=True,
         help_text=_('Date this ticket was first created'),
     )
-
+    
     modified = models.DateTimeField(
         _('Modified'),
         blank=True,
@@ -2089,3 +2097,13 @@ class ChecklistTask(models.Model):
 
     def __str__(self):
         return self.description
+
+
+class UserPermissions(models.Model):
+    class Meta:
+        permissions = (
+            ("user_can_view_all_tickets", "User can view all tickets"),
+            ("user_can_view_own_tickets", "User can view own tickets"),
+            ("user_can_view_tickets_where_assigned", "User can view the tickets where he is assigned."),
+
+        )

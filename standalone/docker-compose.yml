@@ -19,6 +19,7 @@ services:
    ports:
      - "8000:8000"
    volumes:
+    - ./../helpdesk:/opt/django-helpdesk/helpdesk
     - /tmp/django-helpdesk-data:/data/
     - ./custom_navigation_header.html:/opt/django-helpdesk/helpdesk/templates/helpdesk/custom_navigation_header.html:r
    env_file: docker.env
