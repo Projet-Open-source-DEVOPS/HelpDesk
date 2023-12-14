@@ -45,6 +45,25 @@ Typiquement,ici l'on a une approche des permissions par vue : L'on s'imagine êt
 
   Nous avons donc à ce moment là deux groupes: Les clients et les Providers
 
+  ### Avec du code
+  Il est possible d'effectuer la même chose en Python en utilisant le framework Django
+  ```python
+  from django.contrib.auth.models import Group, Permission
+  from django.db.models import Q
+
+  # Create the group
+  client_group, created = Group.objects.get_or_create(name='client')
+
+  # Retrieve the permission objects for the specified permissions
+  user_can_view_own_tickets_permission = Permission.objects.get(
+      Q(codename='user_can_view_own_tickets') &
+      Q(content_type__app_label='helpdesk')
+  )
+
+  # Add the permission to the group
+  client_group.permissions.add(user_can_view_own_tickets_permission)
+  ```
+
 ## Assignation des groupes de permissions aux utilisateurs
   A présent que l'on a ces groupes, l'on va devoir assigner des utilisateurs afin qu'ils héritent de ces permissions.
 
@@ -54,4 +73,23 @@ Typiquement,ici l'on a une approche des permissions par vue : L'on s'imagine êt
   ### Rajoutez la bonne permission à l'utilisateur
   ![image](https://github.com/Projet-Open-source-DEVOPS/HelpDesk/assets/23268707/cc715e2a-cdd7-44d9-82d6-851baea404de)
 
-  L'on retrouve notre liste avec les groupes de permissions crée au préalable. Nous n'avons plus qu'à dire par exemple ici que l'on assigne notre utilisateur 2 au groupe "Client" et il n'aura que les permissions que l'on a définit plus tôt.
+L'on retrouve notre liste avec les groupes de permissions crée au préalable. Nous n'avons plus qu'à dire par exemple ici que l'on assigne notre utilisateur   2 au groupe "Client" et il n'aura que les permissions que l'on a définit plus tôt.
+
+### Avec du code
+L'on peut assigner un groupe de permission à un utilisateur avec le code suivant :
+```python
+from django.contrib.auth.models import User
+from django.contrib.auth.models import Group
+
+# Get the group
+client_group = Group.objects.get(name='client')
+
+# Get the user object
+user = User.objects.get(username='username')
+  
+# Add the user to the 'client' group
+user.groups.add(client_group)
+```
+## Comment intégrer à présent ces permissions au code
+
+Nous allons continuer avec notre exemple sur les tickets.
