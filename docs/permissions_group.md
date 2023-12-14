@@ -90,6 +90,3 @@ user = User.objects.get(username='username')
 # Add the user to the 'client' group
 user.groups.add(client_group)
 ```
-## Comment intégrer à présent ces permissions au code
-
-Nous allons continuer avec notre exemple sur les tickets.
