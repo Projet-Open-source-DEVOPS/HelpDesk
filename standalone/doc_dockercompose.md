@@ -22,7 +22,7 @@ Caddy est un serveur web moderne et open-source qui automatise le processus de c
 
 ### 2. Django Helpdesk
 
-Django Helpdesk est un système de ticket basé sur Django pour le suivi des demandes des utilisateurs. Il est déployé en tant que service Docker et dépend de PostgreSQL pour sa base de données.
+Django Helpdesk est un système de gestion sz ticket basé sur Django pour le suivi des demandes des utilisateurs. Il est déployé en tant que service Docker et dépend de PostgreSQL pour sa base de données.
 
 - **Build :**
   - Contexte : `..` (répertoire parent)
