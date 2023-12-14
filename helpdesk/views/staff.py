@@ -85,8 +85,8 @@ import re
 from rest_framework import status
 from rest_framework.decorators import api_view
 import typing
-
-
+import logging
+logger = logging.getLogger(__name__)
 if helpdesk_settings.HELPDESK_KB_ENABLED:
     from helpdesk.models import KBItem
 
@@ -961,6 +961,9 @@ def check_redirect_on_user_query(request, huser):
 def ticket_list(request):
     context = {}
     huser = HelpdeskUser(request.user)
+    logger.warning(
+               huser
+            )
     # Query_params will hold a dictionary of parameters relating to
     # a query, to be saved if needed:
     query_params = {
@@ -1082,7 +1085,7 @@ def ticket_list(request):
     ))
 
 
-ticket_list = staff_member_required(ticket_list)
+#ticket_list = staff_member_required(ticket_list)
 
 
 class QueryLoadError(Exception):

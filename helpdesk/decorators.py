@@ -93,7 +93,7 @@ def user_connected_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated or not request.user.is_active:
-            return redirect(auth_settings.LOGIN_URL)
+            return redirect('helpdesk:login')
         return view_func(request, *args, **kwargs)
 
     return _wrapped_view
