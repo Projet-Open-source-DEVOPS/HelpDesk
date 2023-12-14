@@ -11,12 +11,14 @@ Pour ce faire, nous avons choisi un projet Open-Source d'outil de ticketing, ave
 **Outils:**
 
 - Docker
+- Serveur GUnicorn
+- base de donnée postgres
 
 **Langages de Développement:**
 
 - Python
-- JavaScript
-- HTML
+- Framework Django
+
 
 # HelpDesk
 
