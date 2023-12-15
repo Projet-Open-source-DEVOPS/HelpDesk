@@ -94,7 +94,7 @@ if helpdesk_settings.HELPDESK_KB_ENABLED:
 DATE_RE: re.Pattern = re.compile(
     r'(?P<month>\d{1,2})/(?P<day>\d{1,2})/(?P<year>\d{4})$'
 )
-
+from django.contrib.auth import logout
 User = get_user_model()
 Query = get_query_class()
 
@@ -1849,3 +1849,7 @@ def delete_checklist_template(request, checklist_template_id):
     return render(request, 'helpdesk/checklist_template_confirm_delete.html', {
         'checklist_template': checklist_template,
     })
+
+def logout_user(request):
+    logout(request)
+    return redirect('helpdesk:login')
