@@ -284,7 +284,7 @@ class AbstractTicketForm(CustomFieldMixin, forms.Form):
         # this procedure is re-defined for public submission form
         return Queue.objects.get(id=int(self.cleaned_data['queue']))
 
-    def _create_ticket(self):
+    def _create_ticket(self,owner_id):
         queue = self._get_queue()
         kbitem = None
         if 'kbitem' in self.cleaned_data:
@@ -306,6 +306,7 @@ class AbstractTicketForm(CustomFieldMixin, forms.Form):
                 getattr(settings, "HELPDESK_PUBLIC_TICKET_DUE_DATE", None)
             ) or None,
             kbitem=kbitem,
+            owner_id = owner_id
         )
 
         return ticket, queue
@@ -495,7 +496,8 @@ class PublicTicketForm(AbstractTicketForm):
         """
         Writes and returns a Ticket() object
         """
-        ticket, queue = self._create_ticket()
+        owner_id = user.id if user.is_authenticated else None
+        ticket, queue = self._create_ticket(owner_id=owner_id)
         if queue.default_owner and not ticket.assigned_to:
             ticket.assigned_to = queue.default_owner
         ticket.save()
