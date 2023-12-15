@@ -47,6 +47,7 @@ app_name = "helpdesk"
 base64_pattern = r"(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
 
 urlpatterns = [
+    path("logout/",staff.logout_user, name="logout"),
     path("dashboard/", staff.dashboard, name="dashboard"),
     path("tickets/", staff.ticket_list, name="list"),
     path("tickets/update/", staff.mass_update, name="mass_update"),
