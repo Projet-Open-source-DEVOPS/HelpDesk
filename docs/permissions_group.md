@@ -16,7 +16,7 @@
   class UserPermissions(models.Model):
     class Meta:
         permissions = (
-            ("user_can_view_all_tickets", "User can view all tickets"),
+            ("user_can_view_all_tickets_not_assigned", "User can view all tickets that has been not assigned to a Provider"),
             ("user_can_view_own_tickets", "User can view own tickets"),
             ("user_can_view_tickets_where_assigned", "User can view the tickets where he is assigned."),
 
@@ -25,7 +25,7 @@
 Ici l'on créer 3 types de permissions : le fait de voir tout les tickets (donc de n'importe quel User), le fait de voir uniquement ses propres tickets, et enfin le fait de voir les tickets qui sont assignés à soit même
 Typiquement,ici l'on a une approche des permissions par vue : L'on s'imagine être sur la page des tickets, et se demander en tant que User, qu'est-ce que j'ai le droit de voir ou non.
 
-**user_can_view_all_tickets** : Ceux qui peuvent voir tout les tickets sont les Admin et les Provider
+**user_can_view_all_tickets_not_assigned** : Ceux qui peuvent voir tout les tickets non assignés sont les Admin et les Provider
 **user_can_view_own_tickets** : Tout les Users peuvent voir leur propre ticket qu'ils ont crées , donc les Client, Provider, et Admin
 **user_can_view_tickets_where_assigned** : Seul les Provider ont ce droit
 

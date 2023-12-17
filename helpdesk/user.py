@@ -81,9 +81,12 @@ class HelpdeskUser:
         user = self.user
         if self.can_access_queue(ticket.queue):
             return True
-        elif self.has_full_access() or \
-                (ticket.assigned_to and user.id == ticket.assigned_to.id):
+        elif self.has_full_access():
             return True
+        elif user.has_perm('helpdesk.user_can_view_tickets_where_assigned'):
+            return (ticket.assigned_to == None) or (ticket.assigned_to and user.id == ticket.assigned_to.id)
+        elif user.has_perm('helpdesk.user_can_view_own_tickets'):
+            return (ticket.owner_id == user.id)
         else:
             return False
 

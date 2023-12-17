@@ -17,7 +17,7 @@ class Command(BaseCommand):
         client_group.permissions.set(client_permissions)
 
         # Set provider permission
-        codenames_provider = ['user_can_view_tickets_where_assigned','user_can_view_all_tickets']
+        codenames_provider = ['user_can_view_tickets_where_assigned','user_can_view_all_tickets_not_assigned']
 
         provider_permissions = Permission.objects.filter(codename__in=codenames_provider)
         provider_group, created = Group.objects.get_or_create(name='provider')

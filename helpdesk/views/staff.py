@@ -246,8 +246,8 @@ dashboard = staff_member_required(dashboard)
 
 def ticket_perm_check(request, ticket):
     huser = HelpdeskUser(request.user)
-    if not huser.can_access_queue(ticket.queue):
-        raise PermissionDenied()
+    #if not huser.can_access_queue(ticket.queue):
+    #    raise PermissionDenied()
     if not huser.can_access_ticket(ticket):
         raise PermissionDenied()
 
@@ -346,7 +346,7 @@ def followup_delete(request, ticket_id, followup_id):
 followup_delete = staff_member_required(followup_delete)
 
 
-@helpdesk_staff_member_required
+@user_connected_required
 def view_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
     ticket_perm_check(request, ticket)
@@ -1127,20 +1127,23 @@ def datatables_ticket_list(request, query):
     serializers.py. The serializers and this view use django-rest_framework methods
     """
     can_view_own_tickets = request.user.has_perm('helpdesk.user_can_view_own_tickets')
-    can_view_all_tickets = request.user.has_perm('helpdesk.user_can_view_all_tickets')
+    can_view_all_tickets_not_assigned = request.user.has_perm('helpdesk.user_can_view_all_tickets_not_assigned')
     can_view_assigned_ticket = request.user.has_perm('helpdesk.user_can_view_tickets_where_assigned')
 
     ticket_filter = {}
     if can_view_own_tickets:
         ticket_filter['owner'] = request.user
-
-    if can_view_assigned_ticket:
+    qq = Q()
+    if can_view_assigned_ticket and can_view_all_tickets_not_assigned:
+        qq = Q(assigned_to=request.user) | Q(assigned_to__isnull=True)
+    elif can_view_assigned_ticket and not can_view_all_tickets_not_assigned:
         ticket_filter['assigned_to'] = request.user
-    
-    if can_view_all_tickets:
+
+    if request.user.is_superuser or request.user.is_staff:
         tickets = Ticket.objects.all()
     else:
-        tickets = Ticket.objects.filter(**ticket_filter)
+        combined_q = Q(**ticket_filter) & qq
+        tickets = Ticket.objects.filter(combined_q)
     
     serializer = DatatablesTicketSerializer(tickets, many=True)
     
