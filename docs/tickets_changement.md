@@ -51,32 +51,23 @@ Cette fonction est appellée par la page en ajax afin de récupérer tout les ti
 On va a présent ajouter une notion de filtrage, car par défault tout les tickets sont renvoyés
 
 ```python
-@user_connected_required
-@api_view(['GET'])
 def datatables_ticket_list(request, query):
-    """
-    Datatable on ticket_list.html uses this view from to get objects to display
-    on the table. query_tickets_by_args is at lib.py, DatatablesTicketSerializer is in
-    serializers.py. The serializers and this view use django-rest_framework methods
-    """
     can_view_own_tickets = request.user.has_perm('helpdesk.user_can_view_own_tickets')
-    can_view_all_tickets_not_assigned = request.user.has_perm('helpdesk.user_can_view_all_tickets_not_assigned')
-    can_view_assigned_ticket = request.user.has_perm('helpdesk.user_can_view_tickets_where_assigned')
-
+    [...]
     ticket_filter = {}
     if can_view_own_tickets:
         ticket_filter['owner'] = request.user
-
+    qq = Q()
     if can_view_assigned_ticket and can_view_all_tickets_not_assigned:
-        ticket_filter['assigned_to__in'] = [request.user, None]
-    elif can_view_assigned_ticket:
+        qq = Q(assigned_to=request.user) | Q(assigned_to__isnull=True)
+    elif can_view_assigned_ticket and not can_view_all_tickets_not_assigned:
         ticket_filter['assigned_to'] = request.user
-    
-    tickets = Ticket.objects.filter(**ticket_filter)
-    
-    serializer = DatatablesTicketSerializer(tickets, many=True)
-    
-    return JsonResponse({'data' :serializer.data }, status=status.HTTP_200_OK, safe=False)
+
+    if request.user.is_superuser or request.user.is_staff:
+        tickets = Ticket.objects.all()
+    else:
+        combined_q = Q(**ticket_filter) & qq
+        tickets = Ticket.objects.filter(combined_q)
 ```
 A présent les tickets sont filtrés. On commence par récupérer les permissions de l'utilisateur, et en fonction de celle qui l'a, on lui montre ou non certains tickets grâce à la variable "ticket_filter".
 
