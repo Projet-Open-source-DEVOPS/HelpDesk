@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
             ],
             options={
-                'permissions': (('user_can_view_all_tickets', 'User can view all tickets'), ('user_can_view_own_tickets', 'User can view own tickets'), ('user_can_view_tickets_where_assigned', 'User can view the tickets where he is assigned.')),
+                'permissions': (('user_can_view_all_tickets_not_assigned', 'User can view all tickets that have not be taken by a provider yet'), ('user_can_view_own_tickets', 'User can view own tickets'), ('user_can_view_tickets_where_assigned', 'User can view the tickets where he is assigned.')),
             },
         ),
     ]
