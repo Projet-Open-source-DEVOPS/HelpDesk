@@ -28,8 +28,12 @@ import helpdesk.views.staff as staff
 from importlib import import_module
 import logging
 from urllib.parse import quote
-
-
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+from django.shortcuts import render, redirect
+from django.views import View
+from django.views.generic.edit import FormView
+from django.contrib.auth.models import Group
 logger = logging.getLogger(__name__)
 
 
@@ -123,6 +127,27 @@ class BaseCreateTicketView(abstract_views.AbstractCreateTicketMixin, FormView):
                 # if someone enters a non-int string for the ticket
                 return HttpResponseRedirect(reverse('helpdesk:home'))
 
+
+
+class RegisterView(View):
+    template_name = 'helpdesk/register.html'
+    form_class = UserCreationForm
+    success_url = '/accounts/login/'  # Redirect to login page upon successful registration
+
+    def get(self, request):
+        form = UserCreationForm()
+        return render(request, self.template_name, {'form': form})
+    
+    def post(self, request):
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            # Add user to the "client" group
+            client_group = Group.objects.get(name='client')
+            user.groups.add(client_group)
+            login(request, user)  # Log the user in after registration
+            return redirect('helpdesk:home')  # Change 'home' to the desired URL after registration
+        return render(request, self.template_name, {'form': form})
 
 class CreateTicketIframeView(BaseCreateTicketView):
     template_name = 'helpdesk/public_create_ticket_iframe.html'

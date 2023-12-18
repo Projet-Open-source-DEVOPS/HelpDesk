@@ -47,6 +47,7 @@ app_name = "helpdesk"
 base64_pattern = r"(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
 
 urlpatterns = [
+    path('accounts/', include('django.contrib.auth.urls')),
     path("logout/",staff.logout_user, name="logout"),
     path("dashboard/", staff.dashboard, name="dashboard"),
     path("tickets/", staff.ticket_list, name="list"),
@@ -154,6 +155,7 @@ if helpdesk_settings.HELPDESK_ENABLE_DEPENDENCIES_ON_TICKET:
     ]
 
 urlpatterns += [
+    path("register/", public.RegisterView.as_view(), name='register'),
     path("", protect_view(public.Homepage.as_view()), name="home"),
     path("tickets/submit/", public.create_ticket, name="submit"),
     path(

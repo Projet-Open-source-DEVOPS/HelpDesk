@@ -1142,8 +1142,11 @@ def datatables_ticket_list(request, query):
     if request.user.is_superuser or request.user.is_staff:
         tickets = Ticket.objects.all()
     else:
-        combined_q = Q(**ticket_filter) & qq
-        tickets = Ticket.objects.filter(combined_q)
+        if not ticket_filter and not qq:
+            tickets = []
+        else:
+            combined_q = (Q(**ticket_filter) & qq)
+            tickets = Ticket.objects.filter(combined_q)
     
     serializer = DatatablesTicketSerializer(tickets, many=True)
     
