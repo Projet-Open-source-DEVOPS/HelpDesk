@@ -31,3 +31,13 @@ class Command(BaseCommand):
         
         user_client.save()
         user_provider.save()
+
+        #Another provider
+
+        user_provider_two = User.objects.create_user(username='provider2',
+                                                   email='provider_2@beat.com',
+                                                   password='Test1234')
+        
+        user_provider_two.groups.add(provider_group)
+
+        user_provider_two.save()
