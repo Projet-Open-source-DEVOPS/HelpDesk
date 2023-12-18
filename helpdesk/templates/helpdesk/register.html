@@ -1,0 +1,10 @@
+{% extends "helpdesk/public_base.html" %}{% load i18n %}
+{% load static %}
+{% block helpdesk_body %}
+  <h2>Register</h2>
+  <form method="post" action="{% url 'helpdesk:register' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Register</button>
+  </form>
+{% endblock %}
