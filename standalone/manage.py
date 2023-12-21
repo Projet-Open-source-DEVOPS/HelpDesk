@@ -2,7 +2,6 @@
 import os
 import sys
 
-
 def main():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "standalone.config.local_settings")
     try:
@@ -20,6 +19,9 @@ def main():
                 "forget to activate a virtual environment?"
             )
         raise
+
+    
+
     execute_from_command_line(sys.argv)
 
 

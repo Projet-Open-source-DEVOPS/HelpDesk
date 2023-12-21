@@ -2,17 +2,17 @@
 
     <!-- Sidebar -->
     <ul class="sidebar navbar-nav">
+      <li class="nav-item{% if 'tickets' in request.path and 'submit' not in request.path %} active{% endif %}">
+        <a class="nav-link" href="{% url 'helpdesk:list' %}">
+          <i class="fas fa-fw fa-tasks"></i>
+          <span>{% trans "All Tickets" %}</span>
+        </a>
+      </li>
     {% if helpdesk_settings.HELPDESK_NAVIGATION_ENABLED and user.is_authenticated or user|is_helpdesk_staff %}
         <li class="nav-item{% if 'dashboard' in request.path %} active{% endif %}">
           <a class="nav-link" href="{% url 'helpdesk:dashboard' %}">
             <i class="fas fa-fw fa-tachometer-alt"></i>
             <span>{% trans "Dashboard" %}</span>
-          </a>
-        </li>
-        <li class="nav-item{% if 'tickets' in request.path and 'submit' not in request.path %} active{% endif %}">
-          <a class="nav-link" href="{% url 'helpdesk:list' %}">
-            <i class="fas fa-fw fa-tasks"></i>
-            <span>{% trans "All Tickets" %}</span>
           </a>
         </li>
         <li class="nav-item dropdown">

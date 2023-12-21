@@ -16,7 +16,10 @@ services:
     context: ..
     dockerfile: standalone/Dockerfile
    user: root
+   ports:
+     - "8000:8000"
    volumes:
+    - ./../helpdesk:/opt/django-helpdesk/helpdesk
     - /tmp/django-helpdesk-data:/data/
     - ./custom_navigation_header.html:/opt/django-helpdesk/helpdesk/templates/helpdesk/custom_navigation_header.html:r
    env_file: docker.env
@@ -29,6 +32,14 @@ services:
       - pg-datas:/var/lib/postgresql/data
    env_file: docker.env
  
+ admin:
+    image: adminer
+    restart: always
+    depends_on: 
+      - postgres
+    ports:
+      - 8080:8080
  
+
 volumes:
  pg-datas:

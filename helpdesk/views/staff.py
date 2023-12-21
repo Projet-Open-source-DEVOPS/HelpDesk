@@ -7,6 +7,7 @@ views/staff.py - The bulk of the application - provides most business logic and
                  renders all staff-facing views.
 """
 
+from helpdesk.serializers import DatatablesTicketSerializer
 from ..lib import format_time_spent
 from ..templated_email import send_templated_mail
 from collections import defaultdict
@@ -32,12 +33,15 @@ from django.utils.timezone import make_aware
 from django.utils.translation import gettext as _
 from django.views.decorators.csrf import requires_csrf_token
 from django.views.generic.edit import FormView, UpdateView
+from django.contrib.auth.models import Group, Permission
 from helpdesk import settings as helpdesk_settings
+from urllib.parse import quote
 from helpdesk.decorators import (
     helpdesk_staff_member_required,
     helpdesk_superuser_required,
     is_helpdesk_staff,
-    superuser_required
+    superuser_required,
+    user_connected_required
 )
 from helpdesk.forms import (
     ChecklistForm,
@@ -84,15 +88,15 @@ import re
 from rest_framework import status
 from rest_framework.decorators import api_view
 import typing
-
-
+import logging
+logger = logging.getLogger(__name__)
 if helpdesk_settings.HELPDESK_KB_ENABLED:
     from helpdesk.models import KBItem
 
 DATE_RE: re.Pattern = re.compile(
     r'(?P<month>\d{1,2})/(?P<day>\d{1,2})/(?P<year>\d{4})$'
 )
-
+from django.contrib.auth import logout
 User = get_user_model()
 Query = get_query_class()
 
@@ -244,8 +248,8 @@ dashboard = staff_member_required(dashboard)
 
 def ticket_perm_check(request, ticket):
     huser = HelpdeskUser(request.user)
-    if not huser.can_access_queue(ticket.queue):
-        raise PermissionDenied()
+    #if not huser.can_access_queue(ticket.queue):
+    #    raise PermissionDenied()
     if not huser.can_access_ticket(ticket):
         raise PermissionDenied()
 
@@ -344,10 +348,25 @@ def followup_delete(request, ticket_id, followup_id):
 followup_delete = staff_member_required(followup_delete)
 
 
-@helpdesk_staff_member_required
+@user_connected_required
 def view_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
     ticket_perm_check(request, ticket)
+
+    #Check if it's a client that try to show the ticket
+    try:
+        client_group = Group.objects.get(name='client')
+
+        if client_group in request.user.groups.all():
+            return HttpResponseRedirect('%s?ticket=%s&email=%s&key=%s' % (
+                    reverse('helpdesk:public_view'),
+                    ticket.ticket_for_url,
+                    quote(ticket.submitter_email),
+                    ticket.secret_key)
+                )
+    except Group.DoesNotExist:
+        pass
+
 
     if 'take' in request.GET:
         update_ticket(
@@ -620,6 +639,13 @@ def return_to_ticket(user, helpdesk_settings, ticket):
     if is_helpdesk_staff(user):
         return HttpResponseRedirect(ticket.get_absolute_url())
     else:
+        try:
+            provider_group = Group.objects.get(name='provider')
+
+            if provider_group in user.groups.all():
+                return HttpResponseRedirect(ticket.get_absolute_url())
+        except Group.DoesNotExist:
+            pass
         return HttpResponseRedirect(ticket.ticket_url)
 
 
@@ -956,13 +982,13 @@ def check_redirect_on_user_query(request, huser):
                 pass
     return None
 
-
-@helpdesk_staff_member_required
+@user_connected_required
 def ticket_list(request):
     context = {}
-
     huser = HelpdeskUser(request.user)
-
+    logger.warning(
+               huser
+            )
     # Query_params will hold a dictionary of parameters relating to
     # a query, to be saved if needed:
     query_params = {
@@ -1084,7 +1110,7 @@ def ticket_list(request):
     ))
 
 
-ticket_list = staff_member_required(ticket_list)
+#ticket_list = staff_member_required(ticket_list)
 
 
 class QueryLoadError(Exception):
@@ -1116,7 +1142,7 @@ def load_saved_query(request, query_params=None):
     return saved_query, query_params
 
 
-@helpdesk_staff_member_required
+@user_connected_required
 @api_view(['GET'])
 def datatables_ticket_list(request, query):
     """
@@ -1124,9 +1150,31 @@ def datatables_ticket_list(request, query):
     on the table. query_tickets_by_args is at lib.py, DatatablesTicketSerializer is in
     serializers.py. The serializers and this view use django-rest_framework methods
     """
-    query = Query(HelpdeskUser(request.user), base64query=query)
-    result = query.get_datatables_context(**request.query_params)
-    return JsonResponse(result, status=status.HTTP_200_OK)
+    can_view_own_tickets = request.user.has_perm('helpdesk.user_can_view_own_tickets')
+    can_view_all_tickets_not_assigned = request.user.has_perm('helpdesk.user_can_view_all_tickets_not_assigned')
+    can_view_assigned_ticket = request.user.has_perm('helpdesk.user_can_view_tickets_where_assigned')
+
+    ticket_filter = {}
+    if can_view_own_tickets:
+        ticket_filter['owner'] = request.user
+    qq = Q()
+    if can_view_assigned_ticket and can_view_all_tickets_not_assigned:
+        qq = Q(assigned_to=request.user) | Q(assigned_to__isnull=True)
+    elif can_view_assigned_ticket and not can_view_all_tickets_not_assigned:
+        ticket_filter['assigned_to'] = request.user
+
+    if request.user.is_superuser or request.user.is_staff:
+        tickets = Ticket.objects.all()
+    else:
+        if not ticket_filter and not qq:
+            tickets = []
+        else:
+            combined_q = (Q(**ticket_filter) & qq)
+            tickets = Ticket.objects.filter(combined_q)
+    
+    serializer = DatatablesTicketSerializer(tickets, many=True)
+    
+    return JsonResponse({'data' :serializer.data }, status=status.HTTP_200_OK, safe=False)
 
 
 @helpdesk_staff_member_required
@@ -1831,3 +1879,7 @@ def delete_checklist_template(request, checklist_template_id):
     return render(request, 'helpdesk/checklist_template_confirm_delete.html', {
         'checklist_template': checklist_template,
     })
+
+def logout_user(request):
+    logout(request)
+    return redirect('helpdesk:login')
