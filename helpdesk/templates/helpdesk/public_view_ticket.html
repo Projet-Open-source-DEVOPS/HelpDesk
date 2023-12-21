@@ -45,7 +45,10 @@
     <td>{{ ticket.tags }}</td>
 </tr>
 {% endif %}
-
+<tr>
+    <th>Provider who accept the ticket</th>
+    <td>{{ ticket.assigned_to }}</td>
+</tr>
 <tr>
     <th colspan='2'>{% trans "Description" %}</th>
 </tr>
