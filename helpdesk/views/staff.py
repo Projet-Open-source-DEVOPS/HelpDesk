@@ -639,6 +639,13 @@ def return_to_ticket(user, helpdesk_settings, ticket):
     if is_helpdesk_staff(user):
         return HttpResponseRedirect(ticket.get_absolute_url())
     else:
+        try:
+            provider_group = Group.objects.get(name='provider')
+
+            if provider_group in user.groups.all():
+                return HttpResponseRedirect(ticket.get_absolute_url())
+        except Group.DoesNotExist:
+            pass
         return HttpResponseRedirect(ticket.ticket_url)
 
 
