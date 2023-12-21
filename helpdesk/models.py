@@ -2107,3 +2107,18 @@ class UserPermissions(models.Model):
             ("user_can_view_tickets_where_assigned", "User can view the tickets where he is assigned."),
 
         )
+class Provider(models.Model):
+    name = models.CharField(max_length=100)
+    
+
+    def __str__(self):
+        return self.name  # Retourne le nom du fournisseur comme représentation textuelle
+
+class Article(models.Model):
+    provider = models.ForeignKey(Provider, on_delete=models.CASCADE, related_name='articles')
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+   
+    def __str__(self):
+        return self.title  # Retourne le titre de l'article comme représentation textuelle
