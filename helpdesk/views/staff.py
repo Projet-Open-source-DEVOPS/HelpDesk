@@ -33,7 +33,9 @@ from django.utils.timezone import make_aware
 from django.utils.translation import gettext as _
 from django.views.decorators.csrf import requires_csrf_token
 from django.views.generic.edit import FormView, UpdateView
+from django.contrib.auth.models import Group, Permission
 from helpdesk import settings as helpdesk_settings
+from urllib.parse import quote
 from helpdesk.decorators import (
     helpdesk_staff_member_required,
     helpdesk_superuser_required,
@@ -350,6 +352,21 @@ followup_delete = staff_member_required(followup_delete)
 def view_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
     ticket_perm_check(request, ticket)
+
+    #Check if it's a client that try to show the ticket
+    try:
+        client_group = Group.objects.get(name='client')
+
+        if client_group in request.user.groups.all():
+            return HttpResponseRedirect('%s?ticket=%s&email=%s&key=%s' % (
+                    reverse('helpdesk:public_view'),
+                    ticket.ticket_for_url,
+                    quote(ticket.submitter_email),
+                    ticket.secret_key)
+                )
+    except Group.DoesNotExist:
+        pass
+
 
     if 'take' in request.GET:
         update_ticket(
