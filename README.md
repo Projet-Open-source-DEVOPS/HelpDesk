@@ -46,6 +46,9 @@ Pour lancer le projet, suivez ces étapes simples :
 
 Et voilà, vous êtes prêt à explorer les fonctionnalités du HelpDesk !
 
+## Documentation
+Retrouvez toute la documentation dans notre Wiki : https://github.com/Projet-Open-source-DEVOPS/HelpDesk/wiki
+
 ## FAQ
 
 1. Lorsque j'exécute le script launch.sh, j'obtiens l'erreur: 
